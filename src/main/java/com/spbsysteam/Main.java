@@ -1,3 +1,7 @@
+package com.spbsysteam;
+
+import com.spbsysteam.frames.LoginFrame;
+
 import javax.swing.*;
 
 public class Main {

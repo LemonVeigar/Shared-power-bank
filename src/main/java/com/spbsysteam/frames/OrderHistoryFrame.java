@@ -1,3 +1,7 @@
+package com.spbsysteam.frames;
+
+import com.spbsysteam.DatabaseConnection;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;

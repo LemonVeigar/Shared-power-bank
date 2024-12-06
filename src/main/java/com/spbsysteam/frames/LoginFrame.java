@@ -1,5 +1,8 @@
+package com.spbsysteam.frames;
+
+import com.spbsysteam.DatabaseConnection;
+
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -120,12 +123,12 @@ public class LoginFrame extends JFrame {
             if (rs.next()) {
                 // 登录成功，显示欢迎信息
                 JOptionPane.showMessageDialog(this, "登录成功！欢迎 " + username, "成功", JOptionPane.INFORMATION_MESSAGE);
-                System.out.println("登录成功，正在打开 MainFrame...");
+                System.out.println("登录成功，正在打开 com.spbsysteam.frames.MainFrame...");
 
                 // 打开主界面
                 MainFrame mainFrame = new MainFrame(username);
                 mainFrame.setVisible(true);
-                System.out.println("MainFrame 已打开");
+                System.out.println("com.spbsysteam.frames.MainFrame 已打开");
 
                 // 关闭登录界面
                 this.dispose();
