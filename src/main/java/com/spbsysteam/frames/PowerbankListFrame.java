@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Vector;
 
@@ -27,7 +28,7 @@ public class PowerbankListFrame extends JFrame {
         this.username = username; // 保存用户名
 
         // 设置窗口标题
-        setTitle("共享充电宝租赁系统 - 可用充电宝列表");
+        setTitle("共享充电宝租赁系统 - 充电宝列表");
         // 设置窗口大小
         setSize(800, 600);
         // 设置窗口关闭操作
@@ -41,7 +42,7 @@ public class PowerbankListFrame extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
 
         // 创建并添加顶部标签
-        JLabel titleLabel = new JLabel("可用充电宝列表", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("充电宝列表", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Microsoft YaHei", Font.BOLD, 24)); // 使用支持中文的字体
         panel.add(titleLabel, BorderLayout.NORTH);
 
@@ -118,13 +119,14 @@ public class PowerbankListFrame extends JFrame {
     }
 
     /**
-     * 从数据库加载可用充电宝数据并填充到表格模型中。
+     * 从数据库加载充电宝数据并填充到表格模型中。
+     * 如果充电宝电量低于50%，将状态显示为“不可用”。
      *
      * @param tableModel 表格模型
      */
     private void loadPowerbankData(DefaultTableModel tableModel) {
-        // 使用try-with-resources确保连接和语句在使用后自动关闭
-        String sql = "SELECT * FROM powerbanks WHERE status = 'available' AND battery_level > 50";
+        // SQL查询语句，获取所有充电宝
+        String sql = "SELECT * FROM powerbanks";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -146,9 +148,33 @@ public class PowerbankListFrame extends JFrame {
                 row.add(rs.getDouble("latitude")); // 添加纬度
                 row.add(rs.getDouble("longitude")); // 添加经度
                 row.add(rs.getInt("battery_level")); // 添加剩余电量
-                row.add(rs.getString("status")); // 添加状态
+
+                // 判断电量是否低于50%，并设置状态
+                int batteryLevel = rs.getInt("battery_level");
+                String dbStatus = rs.getString("status");
+                String displayStatus;
+
+                if (batteryLevel < 50) {
+                    displayStatus = "不可用";
+                } else {
+                    if ("available".equalsIgnoreCase(dbStatus)) {
+                        displayStatus = "可用";
+                    } else if ("maintenance".equalsIgnoreCase(dbStatus)) {
+                        displayStatus = "维修中";
+                    } else {
+                        displayStatus = dbStatus; // 保持数据库中的其他状态
+                    }
+                }
+
+                row.add(displayStatus); // 添加状态
+
                 row.add(rs.getBigDecimal("price_per_hour")); // 添加租赁价格
                 tableModel.addRow(row); // 将行添加到表格模型
+            }
+
+            // 如果没有充电宝记录，显示提示
+            if (tableModel.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this, "暂无充电宝记录", "提示", JOptionPane.INFORMATION_MESSAGE);
             }
 
         } catch (SQLException e) {
@@ -168,9 +194,16 @@ public class PowerbankListFrame extends JFrame {
             return;
         }
 
-        // 获取选中充电宝的ID和租赁价格
+        // 获取选中充电宝的ID、状态和租赁价格
         int powerbankId = (int) powerbankTable.getValueAt(selectedRow, 0); // 获取ID
+        String status = (String) powerbankTable.getValueAt(selectedRow, 5); // 获取状态
         double pricePerHour = ((Number) powerbankTable.getValueAt(selectedRow, 6)).doubleValue(); // 获取租赁价格
+
+        // 检查充电宝是否可租赁
+        if (!"可用".equalsIgnoreCase(status) && !"维修中".equalsIgnoreCase(status)) { // 只有状态为 '可用' 或 '维修中' 的充电宝可以租赁
+            JOptionPane.showMessageDialog(this, "选中的充电宝不可租赁", "提示", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         // 弹出对话框输入租赁时长
         String durationStr = JOptionPane.showInputDialog(this, "请输入租赁时长（小时）：", "租赁充电宝", JOptionPane.PLAIN_MESSAGE);
@@ -190,7 +223,7 @@ public class PowerbankListFrame extends JFrame {
         }
 
         // 计算总费用
-        double totalCost = duration * 1.5; // 每小时1.5元
+        double totalCost = duration * pricePerHour; // 每小时租赁价格
 
         // 使用try-with-resources确保连接和语句在使用后自动关闭
         String getUserIdSql = "SELECT id FROM users WHERE username = ?";
@@ -207,68 +240,69 @@ public class PowerbankListFrame extends JFrame {
             conn.setAutoCommit(false);
 
             // 获取用户ID
+            int userId;
             try (PreparedStatement getUserIdStmt = conn.prepareStatement(getUserIdSql)) {
                 getUserIdStmt.setString(1, username); // 设置用户名参数
                 try (ResultSet userRs = getUserIdStmt.executeQuery()) {
                     if (!userRs.next()) { // 如果未找到用户
                         JOptionPane.showMessageDialog(this, "未找到用户信息", "错误", JOptionPane.ERROR_MESSAGE);
-                        System.out.println("未找到用户名：" + username);
                         conn.rollback(); // 回滚事务
                         return;
                     }
+                    userId = userRs.getInt("id"); // 获取用户ID
+                }
+            }
 
-                    int userId = userRs.getInt("id"); // 获取用户ID
-                    System.out.println("获取到的用户ID：" + userId);
+            // 插入订单记录
+            int orderId;
+            try (PreparedStatement insertOrderStmt = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)) {
+                insertOrderStmt.setInt(1, userId); // 设置用户ID
+                insertOrderStmt.setInt(2, powerbankId); // 设置充电宝ID
+                insertOrderStmt.setInt(3, duration); // 设置使用时长
+                insertOrderStmt.setDouble(4, totalCost); // 设置总费用
+                int rowsInserted = insertOrderStmt.executeUpdate(); // 执行插入
+                if (rowsInserted == 0) { // 如果插入失败
+                    throw new SQLException("创建订单失败");
+                }
 
-                    // 插入订单记录
-                    try (PreparedStatement insertOrderStmt = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)) {
-                        insertOrderStmt.setInt(1, userId); // 设置用户ID
-                        insertOrderStmt.setInt(2, powerbankId); // 设置充电宝ID
-                        insertOrderStmt.setInt(3, duration); // 设置使用时长
-                        insertOrderStmt.setDouble(4, totalCost); // 设置总费用
-                        int rowsInserted = insertOrderStmt.executeUpdate(); // 执行插入
-                        System.out.println("订单插入结果行数：" + rowsInserted);
-
-                        if (rowsInserted == 0) { // 如果插入失败
-                            throw new SQLException("创建订单失败");
-                        }
-
-                        // 获取生成的订单ID（可选）
-                        int orderId = -1;
-                        try (ResultSet generatedKeys = insertOrderStmt.getGeneratedKeys()) {
-                            if (generatedKeys.next()) {
-                                orderId = generatedKeys.getInt(1); // 获取订单ID
-                                System.out.println("生成的订单ID：" + orderId);
-                            }
-                        }
-
-                        // 更新充电宝状态为 'rented'
-                        try (PreparedStatement updatePowerbankStmt = conn.prepareStatement(updatePowerbankSql)) {
-                            updatePowerbankStmt.setInt(1, powerbankId); // 设置充电宝ID
-                            int rowsUpdated = updatePowerbankStmt.executeUpdate(); // 执行更新
-                            System.out.println("充电宝状态更新结果行数：" + rowsUpdated);
-
-                            if (rowsUpdated == 0) { // 如果更新失败
-                                throw new SQLException("更新充电宝状态失败");
-                            }
-                        }
-
-                        // 提交事务
-                        conn.commit();
-                        System.out.println("事务已提交");
-
-                        // 提示租赁成功
-                        JOptionPane.showMessageDialog(this, "租赁成功！订单ID：" + orderId + "\n总费用：" + totalCost + " 元", "成功", JOptionPane.INFORMATION_MESSAGE);
-
-                        // 刷新充电宝列表
-                        loadPowerbankData((DefaultTableModel) powerbankTable.getModel());
-
+                // 获取生成的订单ID
+                try (ResultSet generatedKeys = insertOrderStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        orderId = generatedKeys.getInt(1);
+                    } else {
+                        throw new SQLException("创建订单失败，未生成订单ID");
                     }
                 }
             }
 
+            // 更新充电宝状态为 'rented'
+            try (PreparedStatement updatePowerbankStmt = conn.prepareStatement(updatePowerbankSql)) {
+                updatePowerbankStmt.setInt(1, powerbankId); // 设置充电宝ID
+                int rowsUpdated = updatePowerbankStmt.executeUpdate(); // 执行更新
+                if (rowsUpdated == 0) { // 如果更新失败
+                    throw new SQLException("更新充电宝状态失败");
+                }
+            }
+
+            // 提交事务
+            conn.commit();
+
+            // 提示租赁成功
+            JOptionPane.showMessageDialog(this, "租赁成功！订单ID：" + orderId + "\n总费用：" + totalCost + " 元", "成功", JOptionPane.INFORMATION_MESSAGE);
+
+            // 刷新充电宝列表
+            loadPowerbankData((DefaultTableModel) powerbankTable.getModel());
+
         } catch (SQLException e) { // 捕捉并处理SQL异常
             e.printStackTrace(); // 打印堆栈跟踪到控制台
+            // 尝试回滚事务
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
             // 显示详细错误消息
             JOptionPane.showMessageDialog(this, "租赁过程中发生错误：" + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
         }
@@ -279,10 +313,9 @@ public class PowerbankListFrame extends JFrame {
      */
     private void goBackToMainFrame() {
         // 创建并显示主界面
-        MainFrame mainFrame = new MainFrame(username);
+        MainFrame mainFrame = new MainFrame(username); // 确保传递用户名
         mainFrame.setVisible(true);
-        System.out.println("返回主界面");
-        // 关闭当前充电宝列表界面
-        this.dispose();
+        // 关闭当前界面
+        dispose();
     }
 }

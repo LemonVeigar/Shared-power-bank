@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.sql.*;
 
+
 /**
  * UserProfileFrame类创建用户信息管理界面，供用户查看和修改个人信息。
  */
