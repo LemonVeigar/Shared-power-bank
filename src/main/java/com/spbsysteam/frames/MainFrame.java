@@ -126,6 +126,10 @@ public class MainFrame extends JFrame {
         System.out.println("com.spbsysteam.frames.MainFrame 初始化完成");
     }
 
+    public MainFrame() {
+
+    }
+
     /**
      * 打开充电宝列表界面的方法。
      */
@@ -174,7 +178,7 @@ public class MainFrame extends JFrame {
     private void openAddPowerbankFrame() {
         System.out.println("打开 com.spbsysteam.frames.AddPowerbankFrame");
         // 创建并显示添加充电宝界面
-        AddPowerbankFrame addPowerbankFrame = new AddPowerbankFrame();
+        AddPowerbankFrame addPowerbankFrame = new AddPowerbankFrame(username);
         addPowerbankFrame.setVisible(true);
         System.out.println("com.spbsysteam.frames.AddPowerbankFrame 已打开");
         // 不关闭主界面，允许多窗口操作
