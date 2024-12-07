@@ -1,3 +1,5 @@
+package com.spbsysteam.frames;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -20,7 +22,7 @@ public class MainFrame extends JFrame {
      */
     public MainFrame(String username) {
         this.username = username;
-        System.out.println("MainFrame 构造方法被调用，用户名：" + username);
+        System.out.println("com.spbsysteam.frames.MainFrame 构造方法被调用，用户名：" + username);
 
         // 设置窗口标题
         setTitle("共享充电宝租赁系统 - 主界面");
@@ -121,60 +123,60 @@ public class MainFrame extends JFrame {
             }
         });
 
-        System.out.println("MainFrame 初始化完成");
+        System.out.println("com.spbsysteam.frames.MainFrame 初始化完成");
     }
 
     /**
      * 打开充电宝列表界面的方法。
      */
     private void openPowerbankListFrame() {
-        System.out.println("打开 PowerbankListFrame");
+        System.out.println("打开 com.spbsysteam.frames.PowerbankListFrame");
         // 创建并显示充电宝列表界面
         PowerbankListFrame powerbankListFrame = new PowerbankListFrame(username);
         powerbankListFrame.setVisible(true);
-        System.out.println("PowerbankListFrame 已打开");
+        System.out.println("com.spbsysteam.frames.PowerbankListFrame 已打开");
         // 关闭主界面
         this.dispose();
-        System.out.println("MainFrame 已关闭");
+        System.out.println("com.spbsysteam.frames.MainFrame 已关闭");
     }
 
     /**
      * 打开租借记录界面的方法。
      */
     private void openOrderHistoryFrame() {
-        System.out.println("打开 OrderHistoryFrame");
+        System.out.println("打开 com.spbsysteam.frames.OrderHistoryFrame");
         // 创建并显示租借记录界面
         OrderHistoryFrame orderHistoryFrame = new OrderHistoryFrame(username);
         orderHistoryFrame.setVisible(true);
-        System.out.println("OrderHistoryFrame 已打开");
+        System.out.println("com.spbsysteam.frames.OrderHistoryFrame 已打开");
         // 关闭主界面
         this.dispose();
-        System.out.println("MainFrame 已关闭");
+        System.out.println("com.spbsysteam.frames.MainFrame 已关闭");
     }
 
     /**
      * 打开用户信息管理界面的方法。
      */
     private void openUserProfileFrame() {
-        System.out.println("打开 UserProfileFrame");
+        System.out.println("打开 com.spbsysteam.frames.UserProfileFrame");
         // 创建并显示用户信息管理界面
         UserProfileFrame userProfileFrame = new UserProfileFrame(username);
         userProfileFrame.setVisible(true);
-        System.out.println("UserProfileFrame 已打开");
+        System.out.println("com.spbsysteam.frames.UserProfileFrame 已打开");
         // 关闭主界面
         this.dispose();
-        System.out.println("MainFrame 已关闭");
+        System.out.println("com.spbsysteam.frames.MainFrame 已关闭");
     }
 
     /**
      * 打开添加充电宝界面的方法。
      */
     private void openAddPowerbankFrame() {
-        System.out.println("打开 AddPowerbankFrame");
+        System.out.println("打开 com.spbsysteam.frames.AddPowerbankFrame");
         // 创建并显示添加充电宝界面
         AddPowerbankFrame addPowerbankFrame = new AddPowerbankFrame();
         addPowerbankFrame.setVisible(true);
-        System.out.println("AddPowerbankFrame 已打开");
+        System.out.println("com.spbsysteam.frames.AddPowerbankFrame 已打开");
         // 不关闭主界面，允许多窗口操作
     }
 
@@ -186,9 +188,9 @@ public class MainFrame extends JFrame {
         // 创建并显示登录界面
         LoginFrame loginFrame = new LoginFrame();
         loginFrame.setVisible(true);
-        System.out.println("LoginFrame 已打开");
+        System.out.println("com.spbsysteam.frames.LoginFrame 已打开");
         // 关闭主界面
         this.dispose();
-        System.out.println("MainFrame 已关闭");
+        System.out.println("com.spbsysteam.frames.MainFrame 已关闭");
     }
 }
