@@ -12,6 +12,9 @@ import java.sql.*;
  * AddEditUserDialog类创建添加或编辑用户的对话框。
  */
 public class AddEditUserDialog extends JDialog {
+    private String username; // 当前登录的用户名
+    private String role;     // 当前用户的角色
+
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JComboBox<String> roleComboBox;
@@ -26,16 +29,28 @@ public class AddEditUserDialog extends JDialog {
      * @param parent 父窗口
      * @param title  对话框标题
      * @param user   要编辑的用户，如果为添加则为null
+     * @param role   当前用户的角色（如 "admin" 或 "user"）
      */
-    public AddEditUserDialog(JFrame parent, String title, User user) {
+    public AddEditUserDialog(JFrame parent, String title, User user, String role) {
         super(parent, title, true);
         this.user = user;
+        this.role = role;
 
-        // 设置对话框大小
+        // 权限验证
+        if (!"admin".equalsIgnoreCase(role)) {
+            JOptionPane.showMessageDialog(this, "您没有访问此页面的权限。", "权限不足", JOptionPane.ERROR_MESSAGE);
+            dispose(); // 关闭窗口
+            return;
+        }
+
+        // 初始化UI组件
+        initUI();
+    }
+
+    private void initUI() {
+        // 设置窗口属性
         setSize(400, 300);
-        // 设置对话框居中
-        setLocationRelativeTo(parent);
-        // 禁止调整大小
+        setLocationRelativeTo(getParent());
         setResizable(false);
 
         // 创建主面板并设置布局为GridLayout
@@ -61,42 +76,26 @@ public class AddEditUserDialog extends JDialog {
         panel.add(saveButton);
         panel.add(cancelButton);
 
-        // 将主面板添加到对话框
-        add(panel);
-
         // 如果是编辑，填充已有数据并禁用用户名编辑
         if (user != null) {
             usernameField.setText(user.getUsername());
             usernameField.setEnabled(false); // 不允许修改用户名
-            // 密码不显示，管理员可选择输入新密码
+            // 密码字段留空，允许管理员设置新密码
             roleComboBox.setSelectedItem(user.getRole());
         }
 
-        // 为保存按钮添加点击事件监听器
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleSave();
-            }
-        });
+        // 将主面板添加到对话框
+        add(panel);
 
-        // 为取消按钮添加点击事件监听器
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose(); // 关闭对话框
-            }
-        });
+        // 添加按钮事件监听器
+        saveButton.addActionListener(e -> handleSave());
+        cancelButton.addActionListener(e -> dispose());
     }
 
-    /**
-     * 处理保存用户信息的逻辑。
-     */
     private void handleSave() {
-        // 获取输入数据
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
-        String role = (String) roleComboBox.getSelectedItem();
+        String selectedRole = (String) roleComboBox.getSelectedItem();
 
         // 输入验证
         if (username.isEmpty() || (user == null && password.isEmpty())) {
@@ -117,13 +116,13 @@ public class AddEditUserDialog extends JDialog {
                 }
 
                 pstmt.setString(1, username);
-                pstmt.setString(2, password); // 密码应加密存储
-                pstmt.setString(3, role);
+                pstmt.setString(2, password); // 注意：密码应加密存储
+                pstmt.setString(3, selectedRole);
 
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
                     JOptionPane.showMessageDialog(this, "用户添加成功", "成功", JOptionPane.INFORMATION_MESSAGE);
-                    dispose(); // 关闭对话框
+                    dispose(); // 关闭窗口
                 } else {
                     JOptionPane.showMessageDialog(this, "用户添加失败", "错误", JOptionPane.ERROR_MESSAGE);
                 }
@@ -152,18 +151,18 @@ public class AddEditUserDialog extends JDialog {
                 }
 
                 if (!password.isEmpty()) {
-                    pstmt.setString(1, password); // 密码应加密存储
-                    pstmt.setString(2, role);
+                    pstmt.setString(1, password); // 注意：密码应加密存储
+                    pstmt.setString(2, selectedRole);
                     pstmt.setInt(3, user.getId());
                 } else {
-                    pstmt.setString(1, role);
+                    pstmt.setString(1, selectedRole);
                     pstmt.setInt(2, user.getId());
                 }
 
                 int rowsUpdated = pstmt.executeUpdate();
                 if (rowsUpdated > 0) {
                     JOptionPane.showMessageDialog(this, "用户更新成功", "成功", JOptionPane.INFORMATION_MESSAGE);
-                    dispose(); // 关闭对话框
+                    dispose(); // 关闭窗口
                 } else {
                     JOptionPane.showMessageDialog(this, "用户更新失败", "错误", JOptionPane.ERROR_MESSAGE);
                 }

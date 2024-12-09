@@ -12,6 +12,7 @@ import java.sql.*;
  */
 public class UserProfileFrame extends JFrame {
     private String username; // 当前登录的用户名
+    private String role;     // 当前用户的角色
     private JTextField phoneField; // 手机号输入框
     private JButton updateButton; // 更新按钮
     private JButton backButton; // 返回按钮
@@ -21,8 +22,9 @@ public class UserProfileFrame extends JFrame {
      *
      * @param username 当前登录的用户名
      */
-    public UserProfileFrame(String username) {
+    public UserProfileFrame(String username, String role) {
         this.username = username;
+        this.role = role;         // 保存角色
 
         // 设置窗口标题
         setTitle("共享充电宝租赁系统 - 用户信息管理");
@@ -137,8 +139,8 @@ public class UserProfileFrame extends JFrame {
         String newPhone = phoneField.getText().trim();
 
         // 可以添加手机号格式验证
-        if (!newPhone.matches("\\d{10,15}")) { // 简单的手机号验证
-            JOptionPane.showMessageDialog(this, "请输入有效的手机号（10-15位数字）", "错误", JOptionPane.ERROR_MESSAGE);
+        if (!newPhone.matches("11")) { // 简单的手机号验证
+            JOptionPane.showMessageDialog(this, "请输入有效的手机号（11位数字）", "错误", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -180,7 +182,7 @@ public class UserProfileFrame extends JFrame {
      */
     private void goBackToMainFrame() {
         // 创建并显示主界面
-        MainFrame mainFrame = new MainFrame(username);
+        MainFrame mainFrame = new MainFrame(username,role);
         mainFrame.setVisible(true);
         // 关闭当前用户信息管理界面
         this.dispose();

@@ -15,9 +15,11 @@ import java.util.Vector;
  */
 public class PowerbankListFrame extends JFrame {
     private String username; // 当前登录的用户名
+    private String role;     // 当前用户的角色
     private JTable powerbankTable; // 充电宝信息表格
     private JButton rentButton; // 租赁按钮
     private JButton backButton; // 返回按钮
+
 
     /**
      * 构造方法，初始化充电宝列表界面。
@@ -26,6 +28,7 @@ public class PowerbankListFrame extends JFrame {
      */
     public PowerbankListFrame(String username) {
         this.username = username; // 保存用户名
+        this.role = role;         // 保存角色
 
         // 设置窗口标题
         setTitle("共享充电宝租赁系统 - 充电宝列表");
@@ -313,7 +316,7 @@ public class PowerbankListFrame extends JFrame {
      */
     private void goBackToMainFrame() {
         // 创建并显示主界面
-        MainFrame mainFrame = new MainFrame(username); // 确保传递用户名
+        MainFrame mainFrame = new MainFrame(username,role); // 确保传递用户名
         mainFrame.setVisible(true);
         // 关闭当前界面
         dispose();

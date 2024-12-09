@@ -110,10 +110,10 @@ public class LoginFrame extends JFrame {
                     JOptionPane.showMessageDialog(this, "登录成功！", "成功", JOptionPane.INFORMATION_MESSAGE);
                     // 根据角色打开相应的界面
                     if ("admin".equalsIgnoreCase(role)) {
-                        AdminFrame adminFrame = new AdminFrame(username);
+                        AdminFrame adminFrame = new AdminFrame(username,role);
                         adminFrame.setVisible(true);
                     } else {
-                        MainFrame mainFrame = new MainFrame(username);
+                        MainFrame mainFrame = new MainFrame(username,role);
                         mainFrame.setVisible(true);
                     }
                     // 关闭登录界面

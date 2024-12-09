@@ -10,7 +10,7 @@ import java.sql.SQLException;
  */
 public class DatabaseConnection {
     // 数据库URL，包含数据库名shared_power_bank
-    private static final String URL = "jdbc:mysql://localhost:3306/shared_power_bank?useSSL=false&serverTimezone=UTC";
+    private static final String URL = "jdbc:mysql://localhost:3306/shared_power_bank?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true";
     // 数据库用户名
     private static final String USER = "root";
     // 数据库密码
