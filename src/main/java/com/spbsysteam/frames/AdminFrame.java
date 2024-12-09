@@ -12,14 +12,22 @@ public class AdminFrame extends JFrame {
     private JButton managePowerbanksButton; // 管理充电宝按钮
     private JButton manageUsersButton; // 管理用户按钮
     private JButton backButton; // 返回按钮
-
+    private String role;
     /**
      * 构造方法，初始化管理员管理界面。
      *
      * @param username 当前登录的管理员用户名
      */
-    public AdminFrame(String username) {
+    public AdminFrame(String username,String role) {
         this.username = username; // 保存用户名
+        this.role = role;
+
+        // 只有管理员才能访问此界面
+        if (!"admin".equalsIgnoreCase(role)) {
+            JOptionPane.showMessageDialog(this, "您没有访问此页面的权限。", "权限不足", JOptionPane.ERROR_MESSAGE);
+            dispose(); // 关闭窗口
+            return;
+        }
 
         // 设置窗口标题
         setTitle("共享充电宝租赁系统 - 管理员管理");
@@ -70,18 +78,22 @@ public class AdminFrame extends JFrame {
         managePowerbanksButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("管理充电宝按钮被点击");
-                ManagePowerbanksFrame managePowerbanksFrame = new ManagePowerbanksFrame(username);
-                managePowerbanksFrame.setVisible(true);
-                dispose(); // 关闭当前界面
+                if ("admin".equalsIgnoreCase(role)) {
+                    ManagePowerbanksFrame manageFrame = new ManagePowerbanksFrame(username, role);
+                    manageFrame.setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(AdminFrame.this, "您没有访问此页面的权限。", "权限不足", JOptionPane.ERROR_MESSAGE);
+                }
             }
+
+
         });
 
         manageUsersButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("管理用户按钮被点击");
-                ManageUsersFrame manageUsersFrame = new ManageUsersFrame(username);
+                ManageUsersFrame manageUsersFrame = new ManageUsersFrame(username,role);
                 manageUsersFrame.setVisible(true);
                 dispose(); // 关闭当前界面
             }
@@ -91,10 +103,11 @@ public class AdminFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("返回主界面按钮被点击");
-                MainFrame mainFrame = new MainFrame(username);
+                MainFrame mainFrame = new MainFrame(username,role);
                 mainFrame.setVisible(true);
                 dispose(); // 关闭当前界面
             }
         });
+
     }
 }

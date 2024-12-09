@@ -14,7 +14,9 @@ import java.util.Vector;
  * ManageUsersFrame类创建管理用户的界面，供管理员进行用户的增删改查操作。
  */
 public class ManageUsersFrame extends JFrame {
-    private String username; // 当前登录的管理员用户名
+    private String username; // 当前登录的用户名
+    private String role;     // 当前用户的角色
+
     private JTable userTable; // 用户信息表格
     private JButton addButton; // 添加用户按钮
     private JButton editButton; // 编辑用户按钮
@@ -25,17 +27,26 @@ public class ManageUsersFrame extends JFrame {
     /**
      * 构造方法，初始化管理用户界面。
      *
-     * @param username 当前登录的管理员用户名
+     * @param username 当前登录的用户名
+     * @param role     当前用户的角色（应为 "admin"）
      */
-    public ManageUsersFrame(String username) {
-        this.username = username; // 保存用户名
+    public ManageUsersFrame(String username, String role) {
+        this.username = username;
+        this.role = role;
+
+        // 只有管理员才能访问此界面
+        if (!"admin".equalsIgnoreCase(role)) {
+            JOptionPane.showMessageDialog(this, "您没有访问此页面的权限。", "权限不足", JOptionPane.ERROR_MESSAGE);
+            dispose(); // 关闭窗口
+            return;
+        }
 
         // 设置窗口标题
         setTitle("管理用户 - 管理员: " + username);
         // 设置窗口大小
         setSize(900, 600);
         // 设置窗口关闭操作
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         // 设置窗口居中显示
         setLocationRelativeTo(null);
         // 禁止调整窗口大小
@@ -54,7 +65,6 @@ public class ManageUsersFrame extends JFrame {
         tableModel.addColumn("ID"); // 用户ID
         tableModel.addColumn("用户名"); // 用户名
         tableModel.addColumn("角色"); // 角色
-        // 可以根据需要添加更多用户信息列
 
         // 创建表格并设置模型
         userTable = new JTable(tableModel) {
@@ -110,10 +120,10 @@ public class ManageUsersFrame extends JFrame {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // 弹出添加用户对话框
-                AddEditUserDialog addDialog = new AddEditUserDialog(ManageUsersFrame.this, "添加用户", null);
+                // 实例化 AddEditUserDialog，并传递当前父窗口、标题、null 和角色
+                AddEditUserDialog addDialog = new AddEditUserDialog(ManageUsersFrame.this, "添加用户", null, role);
                 addDialog.setVisible(true);
-                // 刷新表格数据
+                // 刷新用户数据
                 loadUserData(tableModel);
             }
         });
@@ -132,15 +142,16 @@ public class ManageUsersFrame extends JFrame {
                 // 获取用户信息
                 int userId = (int) userTable.getValueAt(selectedRow, 0);
                 String username = (String) userTable.getValueAt(selectedRow, 1);
-                String role = (String) userTable.getValueAt(selectedRow, 2);
+                String userRole = (String) userTable.getValueAt(selectedRow, 2);
 
-                // 创建用户对象
-                User user = new User(userId, username, role);
+                // 创建 User 对象
+                User user = new User(userId, username, userRole);
 
-                // 弹出编辑用户对话框
-                AddEditUserDialog editDialog = new AddEditUserDialog(ManageUsersFrame.this, "编辑用户", user);
+                // 实例化 AddEditUserDialog，并传递当前父窗口、标题、User 对象和角色
+                AddEditUserDialog editDialog = new AddEditUserDialog(ManageUsersFrame.this, "编辑用户", user, role);
                 editDialog.setVisible(true);
-                // 刷新表格数据
+
+                // 刷新用户数据
                 loadUserData(tableModel);
             }
         });
@@ -205,7 +216,7 @@ public class ManageUsersFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // 返回管理员界面
-                AdminFrame adminFrame = new AdminFrame(username); // 传递用户名
+                AdminFrame adminFrame = new AdminFrame(username, role);
                 adminFrame.setVisible(true);
                 // 关闭当前界面
                 dispose();

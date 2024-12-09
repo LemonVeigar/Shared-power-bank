@@ -15,6 +15,7 @@ import java.sql.SQLException;
  */
 public class AddPowerbankFrame extends JFrame {
     private String username; // 当前登录的管理员用户名
+    private String role;     // 当前用户的角色
     private JTextField locationField;
     private JTextField latitudeField;
     private JTextField longitudeField;
@@ -29,8 +30,13 @@ public class AddPowerbankFrame extends JFrame {
      *
      * @param username 当前登录的管理员用户名
      */
-    public AddPowerbankFrame(String username) {
+    public AddPowerbankFrame(String username,String role) {
         this.username = username;
+        this.role = role;
+
+        // 确保按钮被正确实例化
+        addButton = new JButton("添加");
+        cancelButton = new JButton("取消");
 
         // 设置窗口标题
         setTitle("添加充电宝 - 管理员: " + username);
@@ -117,6 +123,13 @@ public class AddPowerbankFrame extends JFrame {
             return;
         }
 
+        // 验证当前用户是否为管理员（冗余验证，提升安全性）
+        if (!"admin".equalsIgnoreCase(role)) {
+            JOptionPane.showMessageDialog(this, "您没有权限执行此操作。", "权限不足", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+
         double latitude, longitude;
         int batteryLevel;
         BigDecimal pricePerHour;
@@ -160,4 +173,5 @@ public class AddPowerbankFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "添加充电宝时发生错误：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 }

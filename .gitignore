@@ -30,3 +30,4 @@ bin/
 # Ignore IntelliJ IDEA files
 .idea/
 *.iml
+/target/

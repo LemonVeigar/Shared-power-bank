@@ -15,14 +15,16 @@ public class OrderHistoryFrame extends JFrame {
     private String username; // 当前登录的用户名
     private JTable orderTable; // 订单信息表格
     private JButton backButton; // 返回按钮
+    private String role;     // 当前用户的角色
 
     /**
      * 构造方法，初始化历史订单查询界面。
      *
      * @param username 当前登录的用户名
      */
-    public OrderHistoryFrame(String username) {
+    public OrderHistoryFrame(String username,String role) {
         this.username = username; // 保存用户名
+        this.role = role;         // 保存角色
 
         // 设置窗口标题
         setTitle("历史订单信息");
@@ -92,7 +94,7 @@ public class OrderHistoryFrame extends JFrame {
         // 为返回按钮添加点击事件监听器
         backButton.addActionListener(e -> {
             // 返回主界面
-            MainFrame mainFrame = new MainFrame(username); // 确保传递用户名
+            MainFrame mainFrame = new MainFrame(username,role); // 确保传递用户名
             mainFrame.setVisible(true);
             // 关闭当前界面
             dispose();

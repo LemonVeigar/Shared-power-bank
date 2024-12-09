@@ -9,20 +9,25 @@ import java.awt.event.*;
  */
 public class MainFrame extends JFrame {
     private String username; // 当前登录的用户名
-    private JButton viewPowerbanksButton; // 查看充电宝按钮
+    private JButton viewAvailablePowerbanksButton; // 查看可用充电宝按钮
     private JButton viewOrdersButton; // 查看租借记录按钮
     private JButton profileButton; // 查看/编辑个人信息按钮
     private JButton addPowerbankButton; // 添加充电宝按钮
     private JButton logoutButton; // 退出登录按钮
+    private String role;     // 当前用户的角色
 
     /**
      * 构造方法，初始化主界面。
      *
      * @param username 当前登录的用户名
+     * @param role     当前用户的角色（如 "admin" 或 "user"）
      */
-    public MainFrame(String username) {
+    public MainFrame(String username, String role) {
         this.username = username;
-        System.out.println("com.spbsysteam.frames.MainFrame 构造方法被调用，用户名：" + username);
+        this.role = role;
+
+        // 调试输出，确认传递的参数
+        System.out.println("MainFrame 构造器调用，username: " + username + ", role: " + role);
 
         // 设置窗口标题
         setTitle("共享充电宝租赁系统 - 主界面");
@@ -45,41 +50,45 @@ public class MainFrame extends JFrame {
 
         // 创建按钮面板
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(5, 1, 10, 10)); // 5行1列，间隔10px
+        buttonPanel.setLayout(new GridLayout(6, 1, 10, 10)); // 6行1列，间隔10px
 
-        // 创建并添加查看充电宝按钮
-        viewPowerbanksButton = new JButton("查看可用充电宝");
-        buttonPanel.add(viewPowerbanksButton);
-
-        // 创建并添加查看租借记录按钮
+        // 实例化按钮
+        viewAvailablePowerbanksButton = new JButton("查看可用充电宝");
         viewOrdersButton = new JButton("查看租借记录");
-        buttonPanel.add(viewOrdersButton);
-
-        // 创建并添加查看/编辑个人信息按钮
         profileButton = new JButton("查看/编辑个人信息");
-        buttonPanel.add(profileButton);
-
-        // 创建并添加添加充电宝按钮
         addPowerbankButton = new JButton("添加充电宝");
-        buttonPanel.add(addPowerbankButton);
-
-        // 创建并添加退出登录按钮
+        JButton viewMyOrdersButton = new JButton("查看我的订单"); // 使用不同的变量名
         logoutButton = new JButton("退出登录");
+
+        // 添加按钮到按钮面板
+        buttonPanel.add(viewAvailablePowerbanksButton);
+        buttonPanel.add(viewOrdersButton);
+        buttonPanel.add(profileButton);
+        buttonPanel.add(addPowerbankButton);
+        buttonPanel.add(viewMyOrdersButton); // 添加“查看我的订单”按钮
         buttonPanel.add(logoutButton);
 
-        // 添加按钮面板到主面板中心
+        // 根据角色控制按钮的可见性或可用性
+        if (!"admin".equalsIgnoreCase(role)) {
+            addPowerbankButton.setVisible(false); // 普通用户不显示“添加充电宝”按钮
+            System.out.println("角色非admin，隐藏添加充电宝按钮");
+        } else {
+            System.out.println("角色为admin，显示添加充电宝按钮");
+        }
+
+        // 将按钮面板添加到主面板中心
         panel.add(buttonPanel, BorderLayout.CENTER);
 
         // 将主面板添加到窗口
         add(panel);
 
-        // 为查看充电宝按钮添加点击事件监听器
-        viewPowerbanksButton.addActionListener(new ActionListener() {
+        // 为查看可用充电宝按钮添加点击事件监听器
+        viewAvailablePowerbanksButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("点击了查看充电宝按钮");
-                // 打开充电宝列表界面
-                openPowerbankListFrame();
+                System.out.println("点击了查看可用充电宝按钮");
+                // 打开查看可用充电宝界面
+                openViewAvailablePowerbanksFrame();
             }
         });
 
@@ -107,9 +116,22 @@ public class MainFrame extends JFrame {
         addPowerbankButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // 仅调用 openAddPowerbankFrame()，避免重复创建对话框
                 System.out.println("点击了添加充电宝按钮");
-                // 打开添加充电宝界面
                 openAddPowerbankFrame();
+            }
+        });
+
+        // 为“查看我的订单”按钮添加点击事件监听器
+        viewMyOrdersButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("点击了查看我的订单按钮");
+                // 打开查看用户订单界面，传递 username 和 role
+                ViewUserOrdersFrame ordersFrame = new ViewUserOrdersFrame(username, role);
+                ordersFrame.setVisible(true);
+                // 关闭主界面
+                dispose();
             }
         });
 
@@ -126,19 +148,15 @@ public class MainFrame extends JFrame {
         System.out.println("com.spbsysteam.frames.MainFrame 初始化完成");
     }
 
-    public MainFrame() {
-
-    }
-
     /**
-     * 打开充电宝列表界面的方法。
+     * 打开查看可用充电宝界面的方法。
      */
-    private void openPowerbankListFrame() {
-        System.out.println("打开 com.spbsysteam.frames.PowerbankListFrame");
-        // 创建并显示充电宝列表界面
-        PowerbankListFrame powerbankListFrame = new PowerbankListFrame(username);
-        powerbankListFrame.setVisible(true);
-        System.out.println("com.spbsysteam.frames.PowerbankListFrame 已打开");
+    private void openViewAvailablePowerbanksFrame() {
+        System.out.println("打开 com.spbsysteam.frames.ViewAvailablePowerbanksFrame");
+        // 创建并显示查看可用充电宝界面
+        ViewAvailablePowerbanksFrame viewAvailableFrame = new ViewAvailablePowerbanksFrame(username, role);
+        viewAvailableFrame.setVisible(true);
+        System.out.println("com.spbsysteam.frames.ViewAvailablePowerbanksFrame 已打开");
         // 关闭主界面
         this.dispose();
         System.out.println("com.spbsysteam.frames.MainFrame 已关闭");
@@ -150,7 +168,7 @@ public class MainFrame extends JFrame {
     private void openOrderHistoryFrame() {
         System.out.println("打开 com.spbsysteam.frames.OrderHistoryFrame");
         // 创建并显示租借记录界面
-        OrderHistoryFrame orderHistoryFrame = new OrderHistoryFrame(username);
+        OrderHistoryFrame orderHistoryFrame = new OrderHistoryFrame(username, role);
         orderHistoryFrame.setVisible(true);
         System.out.println("com.spbsysteam.frames.OrderHistoryFrame 已打开");
         // 关闭主界面
@@ -164,7 +182,7 @@ public class MainFrame extends JFrame {
     private void openUserProfileFrame() {
         System.out.println("打开 com.spbsysteam.frames.UserProfileFrame");
         // 创建并显示用户信息管理界面
-        UserProfileFrame userProfileFrame = new UserProfileFrame(username);
+        UserProfileFrame userProfileFrame = new UserProfileFrame(username, role);
         userProfileFrame.setVisible(true);
         System.out.println("com.spbsysteam.frames.UserProfileFrame 已打开");
         // 关闭主界面
@@ -178,7 +196,7 @@ public class MainFrame extends JFrame {
     private void openAddPowerbankFrame() {
         System.out.println("打开 com.spbsysteam.frames.AddPowerbankFrame");
         // 创建并显示添加充电宝界面
-        AddPowerbankFrame addPowerbankFrame = new AddPowerbankFrame(username);
+        AddPowerbankFrame addPowerbankFrame = new AddPowerbankFrame(username, role);
         addPowerbankFrame.setVisible(true);
         System.out.println("com.spbsysteam.frames.AddPowerbankFrame 已打开");
         // 不关闭主界面，允许多窗口操作
